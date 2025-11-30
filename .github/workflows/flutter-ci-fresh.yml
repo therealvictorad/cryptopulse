@@ -11,14 +11,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # -------------------------
+      # Checkout repo
+      # -------------------------
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # -------------------------
+      # Setup Flutter
+      # -------------------------
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: "3.38.3"
 
+      # -------------------------
+      # Cache Flutter packages
+      # -------------------------
       - name: Cache Flutter packages
         uses: actions/cache@v3
         with:
@@ -27,23 +36,38 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-flutter-
 
+      # -------------------------
+      # Install dependencies
+      # -------------------------
       - name: Install dependencies
         run: |
           flutter pub get
           flutter pub upgrade
 
+      # -------------------------
+      # Run placeholder test
+      # -------------------------
       - name: Run tests
-        run: flutter test  || true
+        run: |
+          mkdir -p test
+          echo "import 'package:flutter_test/flutter_test.dart'; void main() { test('placeholder', () { expect(1, 1); }); }" > test/test_placeholder.dart
+          flutter test
 
+      # -------------------------
       # Build Release APK
+      # -------------------------
       - name: Build APK (release)
         run: flutter build apk --release
 
+      # -------------------------
       # Build Release AAB
+      # -------------------------
       - name: Build AAB (release)
         run: flutter build appbundle --release
 
-      # Upload as artifact (optional)
+      # -------------------------
+      # Upload artifacts (optional)
+      # -------------------------
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -52,17 +76,19 @@ jobs:
             build/app/outputs/flutter-apk/app-release.apk
             build/app/outputs/bundle/release/app-release.aab
 
-      # ================================
-      #   AUTO-PUBLISH GITHUB RELEASE
-      # ================================
-
+      # -------------------------
+      # Create Git tag for release
+      # -------------------------
       - name: Create Tag
-       run: |
-        git config user.name "github-actions"
-        git config user.email "github-actions@github.com"
-        git tag v1.${{ github.run_number }}
-        git push origin v1.${{ github.run_number }}
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git tag v1.${{ github.run_number }}
+          git push origin v1.${{ github.run_number }}
 
+      # -------------------------
+      # Create GitHub Release
+      # -------------------------
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
@@ -70,11 +96,14 @@ jobs:
           name: "Release v1.${{ github.run_number }}"
           body: |
             Automated build for CryptoPulse.
-            - APK and AAB generated from CI.
-            - Tag auto-incremented using run number.
+            - APK and AAB generated from CI
+            - Tag auto-incremented using run number
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # -------------------------
+      # Upload Release assets
+      # -------------------------
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v1
         with:
