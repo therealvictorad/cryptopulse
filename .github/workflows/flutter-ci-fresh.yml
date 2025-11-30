@@ -12,7 +12,7 @@ jobs:
 
     steps:
       # -------------------------
-      # Checkout repo
+      # Checkout repository
       # -------------------------
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -76,7 +76,7 @@ jobs:
             build/app/outputs/flutter-apk/app-release.apk
             build/app/outputs/bundle/release/app-release.aab
 
-  # -------------------------
+      # -------------------------
       # Create Git tag for release (safe)
       # -------------------------
       - name: Create Tag
@@ -98,7 +98,7 @@ jobs:
         run: sleep 5
 
       # -------------------------
-      # Create GitHub Release + Upload Assets (single step)
+      # Create GitHub Release + Upload Assets
       # -------------------------
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
@@ -109,19 +109,6 @@ jobs:
             Automated build for CryptoPulse.
             - APK and AAB generated from CI
             - Tag auto-incremented using run number
-          files: |
-            build/app/outputs/flutter-apk/app-release.apk
-            build/app/outputs/bundle/release/app-release.aab
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-
-      # -------------------------
-      # Upload Release assets
-      # -------------------------
-      - name: Upload Release Assets
-        uses: softprops/action-gh-release@v1
-        with:
           files: |
             build/app/outputs/flutter-apk/app-release.apk
             build/app/outputs/bundle/release/app-release.aab
