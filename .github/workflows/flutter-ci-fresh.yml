@@ -2,9 +2,9 @@ name: Flutter CI Full
 
 on:
   push:
-    branches: [ master ]   
+    branches: [ master ]
   pull_request:
-    branches: [ master ]    
+    branches: [ master ]
 
 jobs:
   build:
@@ -32,18 +32,46 @@ jobs:
           flutter pub get
           flutter pub upgrade
 
-      - name: Run tests 
-        run: flutter test || true
+      - name: Run tests
+        run: flutter test
 
-      - name: Build APK (debug, guaranteed path)
-        run: flutter build apk --debug
+      # Build Release APK
+      - name: Build APK (release)
+        run: flutter build apk --release
 
-      - name: Upload APK artifact
+      # Build Release AAB
+      - name: Build AAB (release)
+        run: flutter build appbundle --release
+
+      # Upload as artifact (optional)
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: build-apk
-          path: build/app/outputs/flutter-apk/app-debug.apk
+          name: release-builds
+          path: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/bundle/release/app-release.aab
 
+      # ================================
+      #   AUTO-PUBLISH GITHUB RELEASE
+      # ================================
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v1.${{ github.run_number }}
+          name: "Release v1.${{ github.run_number }}"
+          body: |
+            Automated build for CryptoPulse.
+            - APK and AAB generated from CI.
+            - Tag auto-incremented using run number.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-          # Trigger CI/CD run
-
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/bundle/release/app-release.aab
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
