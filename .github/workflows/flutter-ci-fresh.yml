@@ -50,7 +50,7 @@ jobs:
       - name: Run tests
         run: |
           mkdir -p test
-          echo "import 'package:flutter_test/flutter_test.dart'; void main() { test('placeholder', () { expect(1, 1); }); }" > test/test_placeholder.dart
+          echo "import 'package:flutter_test/flutter_test.dart'; void main() { test('placeholder', () { expect(1, 1); }); }" > test/test_placeholder_test.dart
           flutter test
 
       # -------------------------
