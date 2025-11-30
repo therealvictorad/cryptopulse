@@ -76,35 +76,45 @@ jobs:
             build/app/outputs/flutter-apk/app-release.apk
             build/app/outputs/bundle/release/app-release.aab
 
-      # -------------------------
-      # Create Git tag for release (safe)
-      # -------------------------
-      - name: Create Tag
-        run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          TAG_NAME=v1.${{ github.run_number }}
-          if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
-            echo "Tag $TAG_NAME already exists, skipping tag creation."
-          else
-            git tag "$TAG_NAME"
-            git push origin "$TAG_NAME"
-          fi
+    # -------------------------
+# Create Git tag for release (safe)
+# -------------------------
+- name: Create Tag
+  run: |
+    git config user.name "github-actions"
+    git config user.email "github-actions@github.com"
+    TAG_NAME=v1.${{ github.run_number }}
+    if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
+      echo "Tag $TAG_NAME already exists, skipping tag creation."
+    else
+      git tag "$TAG_NAME"
+      git push origin "$TAG_NAME"
+    fi
 
-      # -------------------------
-      # Create GitHub Release
-      # -------------------------
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: v1.${{ github.run_number }}
-          name: "Release v1.${{ github.run_number }}"
-          body: |
-            Automated build for CryptoPulse.
-            - APK and AAB generated from CI
-            - Tag auto-incremented using run number
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+# -------------------------
+# Wait a few seconds for GitHub to register the tag
+# -------------------------
+- name: Wait for tag registration
+  run: sleep 5
+
+# -------------------------
+# Create GitHub Release + Upload Assets (single step)
+# -------------------------
+- name: Create GitHub Release
+  uses: softprops/action-gh-release@v1
+  with:
+    tag_name: v1.${{ github.run_number }}
+    name: "Release v1.${{ github.run_number }}"
+    body: |
+      Automated build for CryptoPulse.
+      - APK and AAB generated from CI
+      - Tag auto-incremented using run number
+    files: |
+      build/app/outputs/flutter-apk/app-release.apk
+      build/app/outputs/bundle/release/app-release.aab
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
       # -------------------------
       # Upload Release assets
